@@ -66,8 +66,10 @@
         const numPrizes = prizes.length;
         const arcSize = (2 * Math.PI) / numPrizes;
         let rotationAngle = 0;
+        let spinAngle = 0;
         let spinTime = 0;
         let spinTimeTotal = 0;
+        let isSpinning = false;
 
         // Draw the wheel
         function drawWheel() {
@@ -96,14 +98,20 @@
                 stopRotateWheel();
                 return;
             }
-            const spinAngle = easeOut(spinTime, 0, 3600, spinTimeTotal);
+            spinAngle += easeOut(spinTime, 0, 3600, spinTimeTotal);
             rotationAngle += (spinAngle * Math.PI) / 180;
-            drawWheel();
+            drawRotatedWheel();
+            requestAnimationFrame(rotateWheel);
+        }
+
+        // Draw the wheel with the rotation angle applied
+        function drawRotatedWheel() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.save();
             ctx.translate(250, 250);
             ctx.rotate(rotationAngle);
+            drawWheel();
             ctx.restore();
-            requestAnimationFrame(rotateWheel);
         }
 
         // Ease-out function for spinning effect
@@ -121,12 +129,17 @@
             const winningPrize = prizes[index];
             alert(`Congratulations! You won ${winningPrize.name}`);
             window.location.href = winningPrize.link;
+            isSpinning = false;
         }
 
         // Add event listener to spin button
         spinButton.addEventListener("click", function () {
+            if (isSpinning) return; // Prevent double-click during spin
+
+            isSpinning = true;
             spinTime = 0;
             spinTimeTotal = Math.random() * 3000 + 4000; // Random spin duration
+            spinAngle = Math.random() * 6 + 10; // Random initial speed
             rotateWheel();
         });
 
