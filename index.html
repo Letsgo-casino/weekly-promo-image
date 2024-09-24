@@ -2,27 +2,136 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weekly Promo Image</title>
+    <title>Wheel of Fortune</title>
     <style>
         body {
-            margin: 0;
+            font-family: Arial, sans-serif;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+            justify-content: center;
             height: 100vh;
-            background-color: #f4f4f4;
+            background-color: #f5f5f5;
+            margin: 0;
         }
-        img {
-            max-width: 100%;
-            max-height: 100vh;
-            border: 5px solid #82c91e;
-            border-radius: 10px;
+
+        .container {
+            text-align: center;
+        }
+
+        #spinButton {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-top: 20px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        #spinButton:hover {
+            background-color: #0056b3;
+        }
+
+        canvas {
+            border: 2px solid #000;
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
-    <img src="https://userimg-assets-eu.customeriomail.com/images/client-env-128238/1725378999988_bonus_01J6W9ME90CST1EJM44THD66MF.png">
+    <div class="container">
+        <h1>Wheel of Fortune</h1>
+        <canvas id="wheelCanvas" width="500" height="500"></canvas>
+        <button id="spinButton">Spin the Wheel!</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("wheelCanvas");
+        const ctx = canvas.getContext("2d");
+        const spinButton = document.getElementById("spinButton");
+
+        // Input your five prizes and their corresponding links here
+        const prizes = [
+            { name: "Prize 1", link: "https://example.com/prize1" },
+            { name: "Prize 2", link: "https://example.com/prize2" },
+            { name: "Prize 3", link: "https://example.com/prize3" },
+            { name: "Prize 4", link: "https://example.com/prize4" },
+            { name: "Prize 5", link: "https://example.com/prize5" },
+        ];
+
+        const colors = ["#FF5733", "#33FF57", "#3357FF", "#FF33A6", "#FFC300"];
+        const numPrizes = prizes.length;
+        const arcSize = (2 * Math.PI) / numPrizes;
+        let rotationAngle = 0;
+        let spinTime = 0;
+        let spinTimeTotal = 0;
+
+        // Draw the wheel
+        function drawWheel() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < numPrizes; i++) {
+                const angle = i * arcSize;
+                ctx.beginPath();
+                ctx.arc(250, 250, 200, angle, angle + arcSize);
+                ctx.lineTo(250, 250);
+                ctx.fillStyle = colors[i];
+                ctx.fill();
+                ctx.save();
+                ctx.translate(250, 250);
+                ctx.rotate(angle + arcSize / 2);
+                ctx.fillStyle = "white";
+                ctx.font = "20px Arial";
+                ctx.fillText(prizes[i].name, -ctx.measureText(prizes[i].name).width / 2, -170);
+                ctx.restore();
+            }
+        }
+
+        // Spin the wheel
+        function rotateWheel() {
+            spinTime += 30;
+            if (spinTime >= spinTimeTotal) {
+                stopRotateWheel();
+                return;
+            }
+            const spinAngle = easeOut(spinTime, 0, 3600, spinTimeTotal);
+            rotationAngle += (spinAngle * Math.PI) / 180;
+            drawWheel();
+            ctx.save();
+            ctx.translate(250, 250);
+            ctx.rotate(rotationAngle);
+            ctx.restore();
+            requestAnimationFrame(rotateWheel);
+        }
+
+        // Ease-out function for spinning effect
+        function easeOut(t, b, c, d) {
+            t /= d;
+            t--;
+            return c * (t * t * t + 1) + b;
+        }
+
+        // Stop the wheel and redirect to the prize link
+        function stopRotateWheel() {
+            const degrees = (rotationAngle * 180) / Math.PI + 90;
+            const arcd = (arcSize * 180) / Math.PI;
+            const index = Math.floor((360 - (degrees % 360)) / arcd);
+            const winningPrize = prizes[index];
+            alert(`Congratulations! You won ${winningPrize.name}`);
+            window.location.href = winningPrize.link;
+        }
+
+        // Add event listener to spin button
+        spinButton.addEventListener("click", function () {
+            spinTime = 0;
+            spinTimeTotal = Math.random() * 3000 + 4000; // Random spin duration
+            rotateWheel();
+        });
+
+        // Initial drawing of the wheel
+        drawWheel();
+    </script>
 </body>
 </html>
